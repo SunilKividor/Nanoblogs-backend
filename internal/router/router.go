@@ -13,4 +13,6 @@ func Router(r *gin.Engine) {
 	authorized := r.Group("/user")
 	authorized.Use(auth.AuthMiddleware())
 	authorized.GET("/user", handlers.ProtectedRoute)
+	authorized.POST("/postblog", handlers.PostBlog)
+	authorized.POST("/updateblog", handlers.UpdateBlog)
 }

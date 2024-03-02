@@ -1,15 +1,17 @@
 package postgresql
 
 import (
+	"database/sql"
 	"fmt"
 
 	"github.com/SunilKividor/internal/models"
+	"github.com/google/uuid"
 )
 
-func GetUserDetails(username string) (models.UserDetails, error) {
-	var user models.UserDetails
+func GetUserDetailsQuery(username string) (models.User, error) {
+	var user models.User
 
-	smt := `SELECT * FROM user_details WHERE username = $1`
+	smt := `SELECT * FROM users WHERE username = $1`
 	err := db.QueryRow(smt, username).Scan(&user.Id, &user.Username, &user.Password, &user.AccessToken, &user.RefreshToken)
 	if err != nil {
 		return user, fmt.Errorf("failed to fetch user details: %w", err)
@@ -18,13 +20,13 @@ func GetUserDetails(username string) (models.UserDetails, error) {
 	return user, nil
 }
 
-func GetUsernamePassword(username string) (string, string, error) {
+func GetUsernamePasswordQuery(username string) (string, string, error) {
 	var (
 		name     string
 		password string
 	)
 
-	smt := `SELECT username,password FROM user_details WHERE username = $1`
+	smt := `SELECT username,password FROM users WHERE username = $1`
 	err := db.QueryRow(smt, username).Scan(&name, &password)
 	if err != nil {
 		return "", "", err
@@ -33,28 +35,23 @@ func GetUsernamePassword(username string) (string, string, error) {
 	return name, password, nil
 }
 
-func RegisterNewUser(user models.UserDetails) error {
-	smt := `INSERT INTO user_details(username,password,access_token,refresh_token) VALUES($1,$2,$3,$4)`
-	_, err := db.Exec(smt, user.Username, user.Password, user.AccessToken, user.RefreshToken)
-
-	return err
+func RegisterNewUserQuery(user models.User) (uuid.UUID, error) {
+	var id uuid.UUID
+	smt := `INSERT INTO users(username,password,access_token,refresh_token) VALUES($1,$2,$3,$4) RETURNING id`
+	err := db.QueryRow(smt, user.Username, user.Password, user.AccessToken, user.RefreshToken).Scan(&id)
+	return id, err
 }
 
-func UpdateUserTokens(accessToken string, refreshToken string, username string) error {
+func UpdateUserTokensQuery(accessToken string, refreshToken string, username string) (uuid.UUID, error) {
+	var id uuid.UUID
+	smt := `UPDATE users SET access_token = $1, refresh_token = $2 WHERE username = $3 RETURNING id`
+	err := db.QueryRow(smt, accessToken, refreshToken, username).Scan(&id)
 
-	smt := `UPDATE user_details SET access_token = $1, refresh_token = $2 WHERE username = $3`
-	result, err := db.Exec(smt, accessToken, refreshToken, username)
-	if err != nil {
-		return err
+	switch {
+	case err == sql.ErrNoRows:
+		return id, fmt.Errorf("no user with id %d", id)
+	case err != nil:
+		return id, fmt.Errorf("query error: %v", err)
 	}
-
-	count, err := result.RowsAffected()
-	if err != nil {
-		return err
-	}
-	if count == 1 {
-		return nil
-	}
-
-	return fmt.Errorf("error updating")
+	return id, nil
 }

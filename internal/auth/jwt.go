@@ -42,6 +42,7 @@ func GenerateTokens(username string) (string, string, error) {
 }
 
 func RefreshAccessToken(refreshToken string) (string, string, error) {
+	privateKey := []byte(os.Getenv("APISECRET"))
 	parsedToken, err := jwt.Parse(refreshToken, func(t *jwt.Token) (interface{}, error) {
 		if t.Method != jwt.SigningMethodHS256 {
 			return nil, fmt.Errorf("unexpected signing method: %v", t.Method.Alg())
@@ -67,7 +68,6 @@ func RefreshAccessToken(refreshToken string) (string, string, error) {
 		return "", "", fmt.Errorf("token is expired")
 	}
 
-	privateKey := []byte(os.Getenv("APISECRET"))
 	username := claims["username"]
 	accessClaims := jwt.MapClaims{
 		"authorized": true,

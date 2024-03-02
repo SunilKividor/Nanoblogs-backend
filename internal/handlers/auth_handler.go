@@ -22,7 +22,7 @@ func Login(c *gin.Context) {
 	}
 
 	//check in db if the user exists with the username
-	username, password, err := postgresql.GetUsernamePassword(body.Username)
+	username, password, err := postgresql.GetUsernamePasswordQuery(body.Username)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{
 			"error": err,
@@ -46,7 +46,7 @@ func Login(c *gin.Context) {
 		return
 	}
 	//save tokens in db
-	err = postgresql.UpdateUserTokens(accessToken, refreshToken, username)
+	id, err := postgresql.UpdateUserTokensQuery(accessToken, refreshToken, username)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{
 			"error": "updating table",
@@ -55,6 +55,7 @@ func Login(c *gin.Context) {
 	}
 	//send the tokens to frontend
 	var res models.AuthResModel
+	res.Userid = id
 	res.AccessToken = accessToken
 	res.RefreshToken = refreshToken
 	c.JSON(http.StatusOK, res)
@@ -90,14 +91,14 @@ func Signup(c *gin.Context) {
 	}
 
 	//create user
-	var user models.UserDetails
+	var user models.User
 	user.Username = body.Username
 	user.Password = hashedPassword
 	user.AccessToken = accessToken
 	user.RefreshToken = refreshToken
 
 	//save user in db
-	err = postgresql.RegisterNewUser(user)
+	id, err := postgresql.RegisterNewUserQuery(user)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{
 			"error": err.Error(),
@@ -106,13 +107,14 @@ func Signup(c *gin.Context) {
 	}
 
 	var res models.AuthResModel
+	res.Userid = id
 	res.AccessToken = accessToken
 	res.RefreshToken = refreshToken
 	c.JSON(http.StatusOK, res)
 }
 
 func RefreshToken(c *gin.Context) {
-	var body models.Refreshreq
+	var body models.RefreshreqModel
 	err := c.ShouldBind(&body)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{
@@ -130,7 +132,7 @@ func RefreshToken(c *gin.Context) {
 		return
 	}
 
-	err = postgresql.UpdateUserTokens(accessToken, refreshToken, username)
+	id, err := postgresql.UpdateUserTokensQuery(accessToken, refreshToken, username)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{
 			"error": err.Error(),
@@ -139,6 +141,7 @@ func RefreshToken(c *gin.Context) {
 	}
 
 	var res models.AuthResModel
+	res.Userid = id
 	res.AccessToken = accessToken
 	res.RefreshToken = refreshToken
 	c.JSON(http.StatusOK, res)
