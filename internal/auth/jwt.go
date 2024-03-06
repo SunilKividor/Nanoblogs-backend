@@ -7,20 +7,21 @@ import (
 	"time"
 
 	"github.com/golang-jwt/jwt/v5"
+	"github.com/google/uuid"
 )
 
-func GenerateTokens(username string) (string, string, error) {
+func GenerateTokens(id uuid.UUID) (string, string, error) {
 	privateKey := []byte(os.Getenv("APISECRET"))
 
 	refreshClaims := jwt.MapClaims{
 		"authorized": true,
-		"username":   username,
+		"username":   id,
 		"exp":        time.Now().Add(time.Hour * 24 * time.Duration(365)).Unix(),
 	}
 
 	accessClaims := jwt.MapClaims{
 		"authorized": true,
-		"username":   username,
+		"username":   id,
 		"exp":        time.Now().Add(time.Minute * time.Duration(10)).Unix(),
 	}
 
@@ -41,7 +42,7 @@ func GenerateTokens(username string) (string, string, error) {
 	return accessToken, refreshToken, nil
 }
 
-func RefreshAccessToken(refreshToken string) (string, string, error) {
+func RefreshAccessToken(refreshToken string) (string, error) {
 	privateKey := []byte(os.Getenv("APISECRET"))
 	parsedToken, err := jwt.Parse(refreshToken, func(t *jwt.Token) (interface{}, error) {
 		if t.Method != jwt.SigningMethodHS256 {
@@ -51,35 +52,35 @@ func RefreshAccessToken(refreshToken string) (string, string, error) {
 	})
 
 	if err != nil {
-		return "", "", err
+		return "", err
 	}
 
 	claims, ok := parsedToken.Claims.(jwt.MapClaims)
 	if !ok || !parsedToken.Valid {
-		return "", "", fmt.Errorf("invalid token claims")
+		return "", fmt.Errorf("invalid token claims")
 	}
 	exp, ok := claims["exp"].(float64)
 	if !ok {
-		return "", "", fmt.Errorf("missing or invalid 'exp' claim")
+		return "", fmt.Errorf("missing or invalid 'exp' claim")
 	}
 	expTime := time.Unix(int64(exp), 0)
 
 	if time.Now().After(expTime) {
-		return "", "", fmt.Errorf("token is expired")
+		return "", fmt.Errorf("token is expired")
 	}
 
-	username := claims["username"]
+	id := claims["id"]
 	accessClaims := jwt.MapClaims{
 		"authorized": true,
-		"username":   username,
+		"username":   id,
 		"exp":        time.Now().Add(time.Minute * time.Duration(10)).Unix(),
 	}
 	access := jwt.NewWithClaims(jwt.SigningMethodHS256, accessClaims)
 	accessToken, err := access.SignedString(privateKey)
 	if err != nil {
 		log.Fatal(err)
-		return "", "", err
+		return "", err
 	}
 
-	return accessToken, username.(string), nil
+	return accessToken, nil
 }

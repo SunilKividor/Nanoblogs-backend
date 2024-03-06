@@ -29,3 +29,7 @@ type UpdateBlogReqModel struct {
 	Content  string    `json:"content"`
 	Category string    `json:"category"`
 }
+
+type GetBlogsReqModel struct {
+	UserId uuid.UUID `json:"user_id"`
+}

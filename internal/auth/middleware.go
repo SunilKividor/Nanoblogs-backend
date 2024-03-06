@@ -9,6 +9,7 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/golang-jwt/jwt/v5"
+	"github.com/google/uuid"
 )
 
 func AuthMiddleware() gin.HandlerFunc {
@@ -28,17 +29,10 @@ func AuthMiddleware() gin.HandlerFunc {
 func tokenValid(c *gin.Context) error {
 	token := ExtractToken(c)
 
-	parsedToken, err := jwt.Parse(token, func(t *jwt.Token) (interface{}, error) {
-		if t.Method != jwt.SigningMethodHS256 {
-			return nil, fmt.Errorf("unexpected signing method: %v", t.Method.Alg())
-		}
-		return []byte(os.Getenv("APISECRET")), nil
-	})
-
+	parsedToken, err := parseToken(token)
 	if err != nil {
 		return err
 	}
-
 	claims, ok := parsedToken.Claims.(jwt.MapClaims)
 	if !ok || !parsedToken.Valid {
 		return fmt.Errorf("invalid token claims")
@@ -61,4 +55,40 @@ func ExtractToken(c *gin.Context) string {
 		return strings.Split(bearerToken, " ")[1]
 	}
 	return ""
+}
+
+func parseToken(token string) (*jwt.Token, error) {
+	parsedToken, err := jwt.Parse(token, func(t *jwt.Token) (interface{}, error) {
+		if t.Method != jwt.SigningMethodHS256 {
+			return nil, fmt.Errorf("unexpected signing method: %v", t.Method.Alg())
+		}
+		return []byte(os.Getenv("APISECRET")), nil
+	})
+
+	if err != nil {
+		return parsedToken, err
+	}
+
+	return parsedToken, nil
+}
+
+func ExtractIdFromToken(c *gin.Context) (uuid.UUID, error) {
+	var id uuid.UUID
+	token := ExtractToken(c)
+	parsedToken, err := parseToken(token)
+	if err != nil {
+		return id, err
+	}
+
+	claims, ok := parsedToken.Claims.(jwt.MapClaims)
+	if !ok || !parsedToken.Valid {
+		return id, fmt.Errorf("invalid token claims")
+	}
+
+	idStr := claims["id"].(string)
+	id, err = uuid.Parse(idStr)
+	if err != nil {
+		return id, err
+	}
+	return id, nil
 }

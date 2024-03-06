@@ -22,7 +22,7 @@ func Login(c *gin.Context) {
 	}
 
 	//check in db if the user exists with the username
-	username, password, err := postgresql.GetUsernamePasswordQuery(body.Username)
+	id, password, err := postgresql.GetIdPasswordQuery(body.Username)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{
 			"error": err,
@@ -38,7 +38,7 @@ func Login(c *gin.Context) {
 		return
 	}
 	// generate tokens
-	accessToken, refreshToken, err := auth.GenerateTokens(username)
+	accessToken, refreshToken, err := auth.GenerateTokens(id)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{
 			"error": err.Error(),
@@ -46,16 +46,15 @@ func Login(c *gin.Context) {
 		return
 	}
 	//save tokens in db
-	id, err := postgresql.UpdateUserTokensQuery(accessToken, refreshToken, username)
+	err = postgresql.UpdateUserTokensQuery(refreshToken, id)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{
-			"error": "updating table",
+			"error": "updating tokens",
 		})
 		return
 	}
 	//send the tokens to frontend
 	var res models.AuthResModel
-	res.Userid = id
 	res.AccessToken = accessToken
 	res.RefreshToken = refreshToken
 	c.JSON(http.StatusOK, res)
@@ -81,22 +80,10 @@ func Signup(c *gin.Context) {
 		return
 	}
 
-	//generate tokens
-	accessToken, refreshToken, err := auth.GenerateTokens(body.Username)
-	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{
-			"error": err.Error(),
-		})
-		return
-	}
-
 	//create user
 	var user models.User
 	user.Username = body.Username
 	user.Password = hashedPassword
-	user.AccessToken = accessToken
-	user.RefreshToken = refreshToken
-
 	//save user in db
 	id, err := postgresql.RegisterNewUserQuery(user)
 	if err != nil {
@@ -106,8 +93,25 @@ func Signup(c *gin.Context) {
 		return
 	}
 
+	//generate tokens
+	accessToken, refreshToken, err := auth.GenerateTokens(id)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"error": err.Error(),
+		})
+		return
+	}
+
+	//update user refresh token
+	err = postgresql.UpdateUserTokensQuery(refreshToken, id)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"error": err.Error(),
+		})
+		return
+	}
+
 	var res models.AuthResModel
-	res.Userid = id
 	res.AccessToken = accessToken
 	res.RefreshToken = refreshToken
 	c.JSON(http.StatusOK, res)
@@ -124,15 +128,7 @@ func RefreshToken(c *gin.Context) {
 	}
 	refreshToken := body.RefreshToken
 
-	accessToken, username, err := auth.RefreshAccessToken(refreshToken)
-	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{
-			"error": err.Error(),
-		})
-		return
-	}
-
-	id, err := postgresql.UpdateUserTokensQuery(accessToken, refreshToken, username)
+	accessToken, err := auth.RefreshAccessToken(refreshToken)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{
 			"error": err.Error(),
@@ -141,7 +137,6 @@ func RefreshToken(c *gin.Context) {
 	}
 
 	var res models.AuthResModel
-	res.Userid = id
 	res.AccessToken = accessToken
 	res.RefreshToken = refreshToken
 	c.JSON(http.StatusOK, res)

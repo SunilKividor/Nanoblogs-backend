@@ -15,4 +15,5 @@ func Router(r *gin.Engine) {
 	authorized.GET("/user", handlers.ProtectedRoute)
 	authorized.POST("/postblog", handlers.PostBlog)
 	authorized.POST("/updateblog", handlers.UpdateBlog)
+	authorized.POST("/blogs", handlers.GetAllUserBlogs)
 }
