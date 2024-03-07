@@ -11,17 +11,18 @@ import (
 )
 
 func GenerateTokens(id uuid.UUID) (string, string, error) {
+	log.Println(id.String())
 	privateKey := []byte(os.Getenv("APISECRET"))
 
 	refreshClaims := jwt.MapClaims{
 		"authorized": true,
-		"username":   id,
+		"id":         id.String(),
 		"exp":        time.Now().Add(time.Hour * 24 * time.Duration(365)).Unix(),
 	}
 
 	accessClaims := jwt.MapClaims{
 		"authorized": true,
-		"username":   id,
+		"id":         id.String(),
 		"exp":        time.Now().Add(time.Minute * time.Duration(10)).Unix(),
 	}
 
@@ -70,9 +71,10 @@ func RefreshAccessToken(refreshToken string) (string, error) {
 	}
 
 	id := claims["id"]
+	log.Println(id)
 	accessClaims := jwt.MapClaims{
 		"authorized": true,
-		"username":   id,
+		"id":         id,
 		"exp":        time.Now().Add(time.Minute * time.Duration(10)).Unix(),
 	}
 	access := jwt.NewWithClaims(jwt.SigningMethodHS256, accessClaims)

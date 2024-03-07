@@ -4,6 +4,7 @@ import (
 	"log"
 
 	"github.com/SunilKividor/internal/models"
+	"github.com/google/uuid"
 )
 
 func PostBlogQuery(blog models.Blog) error {
@@ -21,21 +22,20 @@ func UpdateBlogQuery(blog models.UpdateBlogReqModel) error {
 	return err
 }
 
-func GetAllUserBlogsQuery(user_id models.GetBlogsReqModel) ([]models.Blog, error) {
-	var blogs []models.Blog
-	smt := `SELECT * FROM blogs WHERE userid = $1`
-	rows, err := db.Query(smt, user_id.UserId)
+func GetAllUserBlogsQuery(user_id uuid.UUID) ([]models.GetBlogResBody, error) {
+	var blogs []models.GetBlogResBody
+	smt := `SELECT id,title,content,category,created_at,updated_at FROM blogs WHERE userid = $1`
+	rows, err := db.Query(smt, user_id)
 	if err != nil {
 		return blogs, err
 	}
 	defer rows.Close()
 	for rows.Next() {
-		var blog models.Blog
-		err := rows.Scan(&blog.Id, &blog.UserId, &blog.Title, &blog.Content, &blog.Category, &blog.Created_At, &blog.Updated_At)
+		var blog models.GetBlogResBody
+		err := rows.Scan(&blog.Id, &blog.Title, &blog.Content, &blog.Category, &blog.Created_At, &blog.Updated_At)
 		if err != nil {
 			return blogs, err
 		}
-		log.Println(blog)
 		blogs = append(blogs, blog)
 	}
 	if rows.Err() != nil {
@@ -43,4 +43,12 @@ func GetAllUserBlogsQuery(user_id models.GetBlogsReqModel) ([]models.Blog, error
 	}
 	log.Println(blogs)
 	return blogs, nil
+}
+
+func DeleteBlogQuery(blod_id uuid.UUID, user_id uuid.UUID) error {
+	log.Println(blod_id)
+	log.Println(user_id)
+	smt := "DELETE FROM blogs WHERE id=$1 AND userid=$2"
+	_, err := db.Exec(smt, blod_id, user_id)
+	return err
 }

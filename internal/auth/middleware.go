@@ -16,7 +16,7 @@ func AuthMiddleware() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		err := tokenValid(c)
 		if err != nil {
-			c.JSON(http.StatusBadRequest, gin.H{
+			c.JSON(http.StatusUnauthorized, gin.H{
 				"error": err.Error(),
 			})
 			c.Abort()
@@ -84,8 +84,10 @@ func ExtractIdFromToken(c *gin.Context) (uuid.UUID, error) {
 	if !ok || !parsedToken.Valid {
 		return id, fmt.Errorf("invalid token claims")
 	}
-
-	idStr := claims["id"].(string)
+	idStr, ok := claims["id"].(string)
+	if !ok {
+		return id, fmt.Errorf("id is null or not string")
+	}
 	id, err = uuid.Parse(idStr)
 	if err != nil {
 		return id, err

@@ -12,8 +12,8 @@ func Router(r *gin.Engine) {
 	r.POST("/user/refresh", handlers.RefreshToken)
 	authorized := r.Group("/user")
 	authorized.Use(auth.AuthMiddleware())
-	authorized.GET("/user", handlers.ProtectedRoute)
-	authorized.POST("/postblog", handlers.PostBlog)
-	authorized.POST("/updateblog", handlers.UpdateBlog)
-	authorized.POST("/blogs", handlers.GetAllUserBlogs)
+	authorized.POST("/blog/post", handlers.PostBlog)
+	authorized.POST("/blog/update", handlers.UpdateBlog)
+	authorized.GET("/blog/get", handlers.GetAllUserBlogs)
+	authorized.DELETE("/blog/delete", handlers.DeleteBlog)
 }

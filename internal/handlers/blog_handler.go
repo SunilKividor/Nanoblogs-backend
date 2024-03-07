@@ -5,9 +5,11 @@ import (
 	"net/http"
 	"time"
 
+	"github.com/SunilKividor/internal/auth"
 	"github.com/SunilKividor/internal/models"
 	"github.com/SunilKividor/internal/repository/postgresql"
 	"github.com/gin-gonic/gin"
+	"github.com/google/uuid"
 )
 
 func PostBlog(c *gin.Context) {
@@ -19,10 +21,16 @@ func PostBlog(c *gin.Context) {
 		})
 		return
 	}
-
+	id, err := auth.ExtractIdFromToken(c)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"error": err.Error(),
+		})
+		return
+	}
 	//create a blog
 	var blog models.Blog
-	blog.UserId = req.UserId
+	blog.UserId = id
 	blog.Title = req.Title
 	blog.Content = req.Content
 	blog.Category = req.Category
@@ -47,8 +55,15 @@ func UpdateBlog(c *gin.Context) {
 		c.JSON(http.StatusBadRequest, gin.H{
 			"error": "Invalid req body",
 		})
+		return
 	}
 	log.Println(req)
+	if err = uuid.Validate(req.BlogId.String()); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"error": "Invalid id format",
+		})
+		return
+	}
 	//update the blog in db
 	err = postgresql.UpdateBlogQuery(req)
 	if err != nil {
@@ -59,17 +74,16 @@ func UpdateBlog(c *gin.Context) {
 }
 
 func GetAllUserBlogs(c *gin.Context) {
-	var req models.GetBlogsReqModel
-	err := c.ShouldBind(&req)
+
+	id, err := auth.ExtractIdFromToken(c)
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{
-			"error": "Invalid req body",
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"error": err.Error(),
 		})
 		return
 	}
-	log.Println(req)
 	// get all blogs by user id from db
-	blogs, err := postgresql.GetAllUserBlogsQuery(req)
+	blogs, err := postgresql.GetAllUserBlogsQuery(id)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{
 			"error": err.Error(),
@@ -78,4 +92,38 @@ func GetAllUserBlogs(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusOK, blogs)
+}
+
+func DeleteBlog(c *gin.Context) {
+	var req models.DeleteBlogReqModel
+	err := c.ShouldBind(&req)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"error": "Invalid req body",
+		})
+		return
+	}
+	log.Println(req)
+	if err = uuid.Validate(req.BlogId.String()); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"error": "Invalid id format",
+		})
+		return
+	}
+	id, err := auth.ExtractIdFromToken(c)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"error": err.Error(),
+		})
+		return
+	}
+
+	//delete blog in db
+	err = postgresql.DeleteBlogQuery(req.BlogId, id)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"error": err.Error(),
+		})
+		return
+	}
 }
