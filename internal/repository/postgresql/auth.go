@@ -32,8 +32,8 @@ func GetIdPasswordQuery(username string) (uuid.UUID, string, error) {
 
 func RegisterNewUserQuery(user models.User) (uuid.UUID, error) {
 	var id uuid.UUID
-	smt := `INSERT INTO users(username,password) VALUES($1,$2) RETURNING id`
-	err := db.QueryRow(smt, user.Username, user.Password).Scan(&id)
+	smt := `INSERT INTO users(name,username,password) VALUES($1,$2,$3) RETURNING id`
+	err := db.QueryRow(smt, user.Name, user.Username, user.Password).Scan(&id)
 	return id, err
 }
 
@@ -41,4 +41,11 @@ func UpdateUserTokensQuery(refreshToken string, id uuid.UUID) error {
 	smt := `UPDATE users SET refresh_token = $1 WHERE id = $2`
 	_, err := db.Exec(smt, refreshToken, id)
 	return err
+}
+
+func CompareRefreshToken(refreshToken string, id uuid.UUID) bool {
+	var refresh_token string
+	smt := `SELECT refresh_token from users WHERE id = $1 AND refresh_token = $2`
+	err := db.QueryRow(smt, id, refreshToken).Scan(&refresh_token)
+	return err == nil
 }

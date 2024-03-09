@@ -21,7 +21,7 @@ func PostBlog(c *gin.Context) {
 		})
 		return
 	}
-	id, err := auth.ExtractIdFromToken(c)
+	id, err := auth.ExtractIdFromContext(c)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{
 			"error": err.Error(),
@@ -75,7 +75,7 @@ func UpdateBlog(c *gin.Context) {
 
 func GetAllUserBlogs(c *gin.Context) {
 
-	id, err := auth.ExtractIdFromToken(c)
+	id, err := auth.ExtractIdFromContext(c)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{
 			"error": err.Error(),
@@ -110,7 +110,7 @@ func DeleteBlog(c *gin.Context) {
 		})
 		return
 	}
-	id, err := auth.ExtractIdFromToken(c)
+	id, err := auth.ExtractIdFromContext(c)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{
 			"error": err.Error(),

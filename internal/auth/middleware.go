@@ -72,9 +72,13 @@ func parseToken(token string) (*jwt.Token, error) {
 	return parsedToken, nil
 }
 
-func ExtractIdFromToken(c *gin.Context) (uuid.UUID, error) {
-	var id uuid.UUID
+func ExtractIdFromContext(c *gin.Context) (uuid.UUID, error) {
 	token := ExtractToken(c)
+	return ExtractIdFromToken(token)
+}
+
+func ExtractIdFromToken(token string) (uuid.UUID, error) {
+	var id uuid.UUID
 	parsedToken, err := parseToken(token)
 	if err != nil {
 		return id, err

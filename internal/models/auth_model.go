@@ -1,6 +1,12 @@
 package models
 
-type AuthReqModel struct {
+type AuthLoginReqModel struct {
+	Username string `json:"username"`
+	Password string `json:"password"`
+}
+
+type AuthSignupReqModel struct {
+	Name     string `json:"name"`
 	Username string `json:"username"`
 	Password string `json:"password"`
 }

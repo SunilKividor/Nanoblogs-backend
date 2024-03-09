@@ -12,7 +12,7 @@ import (
 )
 
 func Login(c *gin.Context) {
-	var body models.AuthReqModel
+	var body models.AuthLoginReqModel
 
 	err := c.ShouldBind(&body)
 	if err != nil {
@@ -61,7 +61,7 @@ func Login(c *gin.Context) {
 }
 
 func Signup(c *gin.Context) {
-	var body models.AuthReqModel
+	var body models.AuthSignupReqModel
 
 	err := c.ShouldBind(&body)
 	if err != nil {
@@ -84,6 +84,8 @@ func Signup(c *gin.Context) {
 	var user models.User
 	user.Username = body.Username
 	user.Password = hashedPassword
+	user.Name = body.Name
+
 	//save user in db
 	id, err := postgresql.RegisterNewUserQuery(user)
 	if err != nil {
@@ -128,6 +130,21 @@ func RefreshToken(c *gin.Context) {
 	}
 	refreshToken := body.RefreshToken
 
+	id, err := auth.ExtractIdFromToken(refreshToken)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"error": err.Error(),
+		})
+		return
+	}
+
+	ok := postgresql.CompareRefreshToken(refreshToken, id)
+	if !ok {
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"error": "Refresh token has changed or is invalid",
+		})
+		return
+	}
 	accessToken, err := auth.RefreshAccessToken(refreshToken)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{
