@@ -85,6 +85,7 @@ func Signup(c *gin.Context) {
 	user.Username = body.Username
 	user.Password = hashedPassword
 	user.Name = body.Name
+	user.Category = body.Category
 
 	//save user in db
 	id, err := postgresql.RegisterNewUserQuery(user)

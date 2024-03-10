@@ -1,14 +1,15 @@
 package models
 
 type AuthLoginReqModel struct {
-	Username string `json:"username"`
-	Password string `json:"password"`
+	Username string `json:"username" validate:"required"`
+	Password string `json:"password" validate:"required"`
 }
 
 type AuthSignupReqModel struct {
-	Name     string `json:"name"`
-	Username string `json:"username"`
-	Password string `json:"password"`
+	Name     string   `json:"name" validate:"required"`
+	Username string   `json:"username" validate:"required"`
+	Password string   `json:"password" validate:"required"`
+	Category []string `json:"category" validate:"required"`
 }
 
 type AuthResModel struct {
@@ -17,5 +18,5 @@ type AuthResModel struct {
 }
 
 type RefreshreqModel struct {
-	RefreshToken string `json:"refresh_token"`
+	RefreshToken string `json:"refresh_token" validate:"required"`
 }

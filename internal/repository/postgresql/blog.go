@@ -8,7 +8,7 @@ import (
 )
 
 func PostBlogQuery(blog models.Blog) error {
-	smt := `INSERT INTO blogs(userid,title,content,category,created_at,updated_at) VALUES($1,$2,$3,$4,$5,$6) RETURNING id`
+	smt := `INSERT INTO blogs(userid,title,content,category,created_at,updated_at) VALUES($1,$2,$3,$4,$5,$6)`
 	_, err := db.Exec(smt, blog.UserId, blog.Title, blog.Content, blog.Category, blog.Created_At, blog.Updated_At)
 	if err != nil {
 		return err
