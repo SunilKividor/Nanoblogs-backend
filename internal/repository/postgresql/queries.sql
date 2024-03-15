@@ -2,6 +2,8 @@ CREATE TABLE Blogs(id UUID DEFAULT uuid_generate_v4(),userid UUID,title varchar(
 
 CREATE TABLE Users (id UUID DEFAULT uuid_generate_v4() ,name VARCHAR(255) NOT NULL,username VARCHAR(255) NOT NULL,password VARCHAR(255) NOT NULL,refresh_token VARCHAR(255), PRIMARY KEY(id));
 
+CREATE TABLE FOLLOWERS(follower)
+
 CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
 
 CREATE TABLE Categories (id UUID DEFAULT uuid_generate_v4(), name VARCHAR(255), frequency INT, PRIMARY KEY (id));

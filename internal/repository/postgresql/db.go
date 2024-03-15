@@ -11,11 +11,10 @@ import (
 var db *sql.DB
 
 func ConnectDB() {
-	host := os.Getenv("HOST")
 	port := 5432
 	user := os.Getenv("USER")
 	dbname := os.Getenv("DBNAME")
-	connStr := fmt.Sprintf("host=%s port=%d user=%s "+"dbname=%s sslmode=disable", host, port, user, dbname)
+	connStr := fmt.Sprintf("host=localhost port=%d user=%s "+"dbname=%s sslmode=disable", port, user, dbname)
 
 	database, err := sql.Open("postgres", connStr)
 	if err != nil {

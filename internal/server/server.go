@@ -8,5 +8,5 @@ import (
 func StartServer() error {
 	r := gin.Default()
 	router.Router(r)
-	return r.Run(":8080")
+	return r.Run(":3000")
 }

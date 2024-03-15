@@ -7,6 +7,7 @@ import (
 )
 
 func Router(r *gin.Engine) {
+	//auth
 	r.POST("/auth/login", handlers.Login)
 	r.POST("/auth/signup", handlers.Signup)
 	r.POST("/auth/refresh", handlers.RefreshToken)
@@ -17,6 +18,7 @@ func Router(r *gin.Engine) {
 	authorized.POST("/blog/update", handlers.UpdateBlog)
 	authorized.GET("/blog/get", handlers.GetAllUserBlogs)
 	authorized.DELETE("/blog/delete", handlers.DeleteBlog)
-	//user profile
+	//user
+	authorized.GET("/user/profile", handlers.GetUser)
 	authorized.DELETE("/user/delete", handlers.DeleteUser)
 }

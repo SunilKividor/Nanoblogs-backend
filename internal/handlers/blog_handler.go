@@ -45,7 +45,6 @@ func PostBlog(c *gin.Context) {
 		})
 		return
 	}
-	c.JSON(http.StatusOK, gin.H{})
 }
 
 func UpdateBlog(c *gin.Context) {
