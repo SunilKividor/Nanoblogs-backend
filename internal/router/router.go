@@ -21,4 +21,7 @@ func Router(r *gin.Engine) {
 	//user
 	authorized.GET("/user/profile", handlers.GetUser)
 	authorized.DELETE("/user/delete", handlers.DeleteUser)
+
+	//health
+	r.POST("/health", handlers.HelathCheck)
 }
