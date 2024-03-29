@@ -63,8 +63,15 @@ func UpdateBlog(c *gin.Context) {
 		})
 		return
 	}
+
+	var updatedBlog models.UpdateBlogDBModel
+
+	updatedBlog.BlogId = req.BlogId
+	updatedBlog.Title = req.Title
+	updatedBlog.Content = req.Content
+	updatedBlog.Category = req.Category
 	//update the blog in db
-	err = postgresql.UpdateBlogQuery(req)
+	err = postgresql.UpdateBlogQuery(updatedBlog)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{
 			"error": err.Error(),

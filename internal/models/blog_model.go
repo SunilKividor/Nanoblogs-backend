@@ -33,9 +33,16 @@ type PostBlogReqModel struct {
 }
 
 type UpdateBlogReqModel struct {
+	BlogId   uuid.UUID `json:"blog_id" validate:"required"`
+	Title    string    `json:"title" validate:"required"`
+	Content  []string  `json:"content" validate:"required"`
+	Category []string  `json:"category" validate:"required"`
+}
+
+type UpdateBlogDBModel struct {
 	BlogId   uuid.UUID      `json:"blog_id" validate:"required"`
 	Title    string         `json:"title" validate:"required"`
-	Content  string         `json:"content" validate:"required"`
+	Content  pq.StringArray `json:"content" validate:"required"`
 	Category pq.StringArray `json:"category" validate:"required"`
 }
 

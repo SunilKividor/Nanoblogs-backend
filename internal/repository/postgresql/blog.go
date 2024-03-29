@@ -16,7 +16,7 @@ func PostBlogQuery(blog models.Blog) error {
 	return nil
 }
 
-func UpdateBlogQuery(blog models.UpdateBlogReqModel) error {
+func UpdateBlogQuery(blog models.UpdateBlogDBModel) error {
 	smt := `UPDATE blogs SET title = $1,content = $2,category = $3 WHERE id = $4`
 	_, err := db.Exec(smt, blog.Title, blog.Content, blog.Category, blog.BlogId)
 	return err
