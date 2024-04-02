@@ -21,6 +21,7 @@ func Login(c *gin.Context) {
 		})
 	}
 
+	fmt.Println(body)
 	//check in db if the user exists with the username
 	id, password, err := postgresql.GetIdPasswordQuery(body.Username)
 	if err != nil {
