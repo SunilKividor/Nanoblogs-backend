@@ -9,7 +9,7 @@ func GetUserQuery(id uuid.UUID) (models.User, error) {
 	var user models.User
 	smt := `SELECT * FROM users WHERE id = $1`
 
-	err := db.QueryRow(smt, id).Scan(&user.Id, &user.Name, &user.Username, &user.Password, &user.RefreshToken, &user.Category)
+	err := db.QueryRow(smt, id).Scan(&user.Id, &user.Name, &user.Password, &user.RefreshToken, &user.Category, &user.Username)
 	if err != nil {
 		return user, err
 	}

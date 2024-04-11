@@ -1,9 +1,12 @@
 package postgresql
 
 import (
+	"context"
+	"database/sql"
 	"fmt"
 
 	"github.com/SunilKividor/internal/models"
+	"github.com/SunilKividor/internal/repository/neo4j"
 	"github.com/google/uuid"
 )
 
@@ -33,8 +36,34 @@ func GetIdPasswordQuery(username string) (uuid.UUID, string, error) {
 func RegisterNewUserQuery(user models.User) (uuid.UUID, error) {
 	var id uuid.UUID
 	smt := `INSERT INTO users(name,username,password,category) VALUES($1,$2,$3,$4) RETURNING id`
-	err := db.QueryRow(smt, user.Name, user.Username, user.Password, user.Category).Scan(&id)
-	return id, err
+	ctx := context.Background()
+	tx, err := db.BeginTx(ctx, &sql.TxOptions{})
+	if err != nil {
+		return id, err
+	}
+	err = tx.QueryRow(smt, user.Name, user.Username, user.Password, user.Category).Scan(&id)
+	if err != nil {
+		er := tx.Rollback()
+		if er != nil {
+			return id, er
+		} else {
+			return id, err
+		}
+	} else {
+		err = neo4j.RegisterNewUserNeo4j(user.Username, user.Category)
+		if err != nil {
+			er := tx.Rollback()
+			if er != nil {
+				return id, er
+			} else {
+				return id, err
+			}
+
+		} else {
+			err = tx.Commit()
+			return id, err
+		}
+	}
 }
 
 func UpdateUserTokensQuery(refreshToken string, id uuid.UUID) error {

@@ -88,7 +88,7 @@ func Signup(c *gin.Context) {
 	user.Name = body.Name
 	user.Category = body.Category
 
-	//save user in db
+	//save user in db : postgresql
 	id, err := postgresql.RegisterNewUserQuery(user)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{

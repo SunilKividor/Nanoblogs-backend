@@ -1,15 +1,33 @@
 package postgresql
 
 import (
+	"context"
+	"database/sql"
 	"log"
 
 	"github.com/SunilKividor/internal/models"
+
 	"github.com/google/uuid"
 )
 
 func PostBlogQuery(blog models.Blog) error {
 	smt := `INSERT INTO blogs(userid,title,content,category,created_at,updated_at) VALUES($1,$2,$3,$4,$5,$6)`
-	_, err := db.Exec(smt, blog.UserId, blog.Title, blog.Content, blog.Category, blog.Created_At, blog.Updated_At)
+	ctx := context.Background()
+	tx, err := db.BeginTx(ctx, &sql.TxOptions{})
+	if err != nil {
+		return err
+	}
+	_, err = tx.Exec(smt, blog.UserId, blog.Title, blog.Content, blog.Category, blog.Created_At, blog.Updated_At)
+	if err != nil {
+		tx.Rollback()
+		return err
+	}
+	err = AddCategory(blog.Category)
+	if err != nil {
+		tx.Rollback()
+		return err
+	}
+	err = tx.Commit()
 	if err != nil {
 		return err
 	}
