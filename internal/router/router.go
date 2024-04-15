@@ -29,6 +29,7 @@ func Router(r *gin.Engine) {
 	r.POST("/auth/login", handlers.Login)
 	r.POST("/auth/signup", handlers.Signup)
 	r.POST("/auth/refresh", handlers.RefreshToken)
+	r.GET("/auth/category", handlers.GetAllCategories)
 	authorized := r.Group("/user")
 	//blogs
 	authorized.Use(auth.AuthMiddleware())

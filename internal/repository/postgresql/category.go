@@ -42,3 +42,7 @@ func AddCategory(categories pq.StringArray) error {
 	}
 	return nil
 }
+
+func GetAllCategories() {
+
+}
