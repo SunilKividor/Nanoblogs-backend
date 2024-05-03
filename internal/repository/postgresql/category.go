@@ -16,9 +16,9 @@ func AddCategory(categories pq.StringArray) error {
 		return err
 	}
 	for _, category := range categories {
-		smt := `INSERT INTO Categories(name,frequency) VALUES($1,$2) ON CONFLICT(name) DO NOTHING RETURNING name`
+		smt := `INSERT INTO Categories(name) VALUES($1) ON CONFLICT(name) DO NOTHING RETURNING name`
 		var cat string
-		err = tx.QueryRow(smt, category, 0).Scan(&cat)
+		err = tx.QueryRow(smt, category).Scan(&cat)
 		if err != nil {
 			if err == sql.ErrNoRows {
 				//increase frequency in neo4j db
@@ -41,8 +41,4 @@ func AddCategory(categories pq.StringArray) error {
 		return err
 	}
 	return nil
-}
-
-func GetAllCategories() {
-
 }
