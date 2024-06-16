@@ -100,6 +100,18 @@ func GetAllUserBlogs(c *gin.Context) {
 	c.JSON(http.StatusOK, blogs)
 }
 
+func GetAllBlogs(c *gin.Context) {
+	blogs, err := postgresql.GetAllBlogsQuery()
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"error": err.Error(),
+		})
+		return
+	}
+
+	c.JSON(http.StatusOK, blogs)
+}
+
 func DeleteBlog(c *gin.Context) {
 	var req models.DeleteBlogReqModel
 	err := c.ShouldBind(&req)

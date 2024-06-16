@@ -30,16 +30,21 @@ func Router(r *gin.Engine) {
 	r.POST("/auth/signup", handlers.Signup)
 	r.POST("/auth/refresh", handlers.RefreshToken)
 	r.GET("/auth/category", handlers.GetAllCategories)
-	authorized := r.Group("/user")
-	//blogs
+	user := r.Group("/user")
+	authorized := r.Group("/blog")
+	//middlewares
+	user.Use(auth.AuthMiddleware())
 	authorized.Use(auth.AuthMiddleware())
-	authorized.POST("/blog/post", handlers.PostBlog)
-	authorized.POST("/blog/update", handlers.UpdateBlog)
-	authorized.GET("/blog/get", handlers.GetAllUserBlogs)
-	authorized.DELETE("/blog/delete", handlers.DeleteBlog)
+	//user-blogs
+	user.POST("/blog/post", handlers.PostBlog)
+	user.POST("/blog/update", handlers.UpdateBlog)
+	user.GET("/blog/get", handlers.GetAllUserBlogs)
+	user.DELETE("/blog/delete", handlers.DeleteBlog)
 	//user
-	authorized.GET("/user/profile", handlers.GetUser)
-	authorized.DELETE("/user/delete", handlers.DeleteUser)
+	user.GET("/user/profile", handlers.GetUser)
+	user.DELETE("/user/delete", handlers.DeleteUser)
+	//blogs
+	authorized.GET("/all", handlers.GetAllBlogs)
 
 	//health
 	r.POST("/health", handlers.HelathCheck)

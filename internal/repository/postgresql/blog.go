@@ -63,6 +63,29 @@ func GetAllUserBlogsQuery(user_id uuid.UUID) ([]models.GetBlogResBody, error) {
 	return blogs, nil
 }
 
+func GetAllBlogsQuery() ([]models.GetBlogResBody, error) {
+	var blogs []models.GetBlogResBody
+	smt := `SELECT id,title,content,category,created_at,updated_at FROM blogs`
+	rows, err := db.Query(smt)
+	if err != nil {
+		return blogs, err
+	}
+	defer rows.Close()
+	for rows.Next() {
+		var blog models.GetBlogResBody
+		err := rows.Scan(&blog.Id, &blog.Title, &blog.Content, &blog.Category, &blog.Created_At, &blog.Updated_At)
+		if err != nil {
+			return blogs, err
+		}
+		blogs = append(blogs, blog)
+	}
+	if rows.Err() != nil {
+		return blogs, err
+	}
+	log.Println(blogs)
+	return blogs, nil
+}
+
 func DeleteBlogQuery(blod_id uuid.UUID, user_id uuid.UUID) error {
 	log.Println(blod_id)
 	log.Println(user_id)
