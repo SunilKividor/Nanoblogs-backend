@@ -1,3 +1,4 @@
+// Java script web tokens
 package auth
 
 import (
